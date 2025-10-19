@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Backend Connection</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .badge-success { background: #28a745; color: white; }
+        .badge-error { background: #dc3545; color: white; }
+        .badge-pending { background: #ffc107; color: #333; }
+        input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-right: 10px;
+            width: 200px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test de Connexion Frontend ↔ Backend</h1>
+        <p><strong>Backend:</strong> http://localhost:8000</p>
+        <p><strong>Frontend:</strong> http://localhost:5176 (via Vite proxy)</p>
+
+        <div class="grid">
+            <!-- Test 1: Backend Ping -->
+            <div class="test-section">
+                <h3>1️⃣ Test Backend Ping</h3>
+                <p>Vérifie si le backend répond</p>
+                <button onclick="testPing()">Tester Ping</button>
+                <div id="ping-result"></div>
+            </div>
+
+            <!-- Test 2: Login Admin -->
+            <div class="test-section">
+                <h3>2️⃣ Test Login Admin</h3>
+                <input type="email" id="login-email" value="admin@tgi.fr" placeholder="Email">
+                <input type="password" id="login-password" value="password" placeholder="Password">
+                <button onclick="testLogin()">Se Connecter</button>
+                <div id="login-result"></div>
+            </div>
+
+            <!-- Test 3: Get My Permissions -->
+            <div class="test-section">
+                <h3>3️⃣ Mes Permissions</h3>
+                <p>Nécessite une connexion</p>
+                <button onclick="testMyPermissions()">Charger Permissions</button>
+                <div id="permissions-result"></div>
+            </div>
+
+            <!-- Test 4: List Users -->
+            <div class="test-section">
+                <h3>4️⃣ Liste des Utilisateurs</h3>
+                <p>Nécessite permission: users.view</p>
+                <button onclick="testListUsers()">Lister Utilisateurs</button>
+                <div id="users-result"></div>
+            </div>
+
+            <!-- Test 5: Get Roles -->
+            <div class="test-section">
+                <h3>5️⃣ Liste des Rôles</h3>
+                <button onclick="testGetRoles()">Charger Rôles</button>
+                <div id="roles-result"></div>
+            </div>
+
+            <!-- Test 6: Create User -->
+            <div class="test-section">
+                <h3>6️⃣ Créer Utilisateur</h3>
+                <input type="text" id="new-name" placeholder="Nom" value="Test User">
+                <input type="email" id="new-email" placeholder="Email" value="test@tgi.fr">
+                <input type="password" id="new-password" placeholder="Password" value="password123">
+                <select id="new-role">
+                    <option value="commercial">Commercial</option>
+                    <option value="juridique">Juridique</option>
+                    <option value="comptable">Comptable</option>
+                </select>
+                <button onclick="testCreateUser()">Créer</button>
+                <div id="create-result"></div>
+            </div>
+        </div>
+
+        <div class="test-section" style="margin-top: 30px;">
+            <h3>📊 État de la Connexion</h3>
+            <div id="connection-status"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+
+        function displayResult(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            const badge = isSuccess ? 
+                '<span class="badge badge-success">✓ Succès</span>' : 
+                '<span class="badge badge-error">✗ Erreur</span>';
+            
+            element.innerHTML = `
+                ${badge}
+                <div class="result ${isSuccess ? 'success' : 'error'}">
+                    ${JSON.stringify(data, null, 2)}
+                </div>
+            `;
+        }
+
+        function updateConnectionStatus() {
+            const status = document.getElementById('connection-status');
+            status.innerHTML = authToken ? 
+                `<div class="result success">
+                    <span class="badge badge-success">Connecté</span>
+                    <p>Token: ${authToken.substring(0, 20)}...</p>
+                </div>` :
+                `<div class="result info">
+                    <span class="badge badge-pending">Non connecté</span>
+                    <p>Utilisez le test de login pour obtenir un token</p>
+                </div>`;
+        }
+
+        async function testPing() {
+            try {
+                const response = await fetch('/api/ping');
+                const data = await response.json();
+                displayResult('ping-result', {
+                    ...data,
+                    status: response.status,
+                    message: '✅ Backend accessible'
+                }, true);
+            } catch (error) {
+                displayResult('ping-result', {
+                    error: error.message,
+                    message: '❌ Backend inaccessible'
+                }, false);
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('auth_token', authToken);
+                    displayResult('login-result', {
+                        user: data.user,
+                        token: authToken.substring(0, 30) + '...',
+                        message: '✅ Connexion réussie'
+                    }, true);
+                    updateConnectionStatus();
+                } else {
+                    displayResult('login-result', {
+                        error: data,
+                        message: '❌ Échec de connexion'
+                    }, false);
+                }
+            } catch (error) {
+                displayResult('login-result', {
+                    error: error.message
+                }, false);
+            }
+        }
+
+        async function testMyPermissions() {
+            if (!authToken) {
+                displayResult('permissions-result', {
+                    message: '⚠️ Veuillez vous connecter d\'abord'
+                }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/my-permissions', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                displayResult('permissions-result', data, response.ok);
+            } catch (error) {
+                displayResult('permissions-result', { error: error.message }, false);
+            }
+        }
+
+        async function testListUsers() {
+            if (!authToken) {
+                displayResult('users-result', {
+                    message: '⚠️ Veuillez vous connecter d\'abord'
+                }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResult('users-result', {
+                        count: data.users?.length || 0,
+                        users: data.users,
+                        message: '✅ Utilisateurs chargés'
+                    }, true);
+                } else {
+                    displayResult('users-result', {
+                        error: data,
+                        status: response.status,
+                        message: response.status === 403 ? 
+                            '❌ Permission refusée (users.view requis)' : 
+                            '❌ Erreur'
+                    }, false);
+                }
+            } catch (error) {
+                displayResult('users-result', { error: error.message }, false);
+            }
+        }
+
+        async function testGetRoles() {
+            if (!authToken) {
+                displayResult('roles-result', {
+                    message: '⚠️ Veuillez vous connecter d\'abord'
+                }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/roles', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                displayResult('roles-result', data, response.ok);
+            } catch (error) {
+                displayResult('roles-result', { error: error.message }, false);
+            }
+        }
+
+        async function testCreateUser() {
+            if (!authToken) {
+                displayResult('create-result', {
+                    message: '⚠️ Veuillez vous connecter d\'abord'
+                }, false);
+                return;
+            }
+
+            const name = document.getElementById('new-name').value;
+            const email = document.getElementById('new-email').value;
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('new-role').value;
+
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResult('create-result', {
+                        ...data,
+                        message: '✅ Utilisateur créé'
+                    }, true);
+                } else {
+                    displayResult('create-result', {
+                        error: data,
+                        status: response.status,
+                        message: response.status === 403 ? 
+                            '❌ Permission refusée (users.create requis)' : 
+                            '❌ Erreur'
+                    }, false);
+                }
+            } catch (error) {
+                displayResult('create-result', { error: error.message }, false);
+            }
+        }
+
+        // Auto-load token from localStorage
+        window.onload = () => {
+            authToken = localStorage.getItem('auth_token');
+            updateConnectionStatus();
+            
+            // Auto test ping on load
+            testPing();
+        };
+    </script>
+</body>
+</html>

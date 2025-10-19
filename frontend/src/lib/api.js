@@ -2,9 +2,10 @@ import axios from 'axios'
 
 export const tokenStorageKey = 'auth_token'
 
-// Always use a relative base URL so the Vite dev proxy forwards /api -> backend.
-// For production, set your reverse proxy or serve frontend and backend under the same origin.
-const baseURL = ''
+// Use API URL from environment variable
+// In dev: calls backend directly at http://localhost:8000
+// In prod: use your production backend URL
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL,

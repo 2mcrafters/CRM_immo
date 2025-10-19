@@ -7,11 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwind()],
   server: {
     port: 5175,
-      proxy: {
-        '/api': {
-          target: 'http://127.0.0.1:8000',
-          changeOrigin: true,
-        },
+    proxy: {
+      "/api": {
+        // Backend listens on localhost (IPv6 ::1). Using 'localhost' avoids IPv4-only 127.0.0.1 mismatch.
+        target: "http://localhost:8000",
+        changeOrigin: true,
       },
+    },
   },
-})
+});

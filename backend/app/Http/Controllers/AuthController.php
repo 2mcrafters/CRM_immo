@@ -45,8 +45,22 @@ class AuthController extends Controller
             if (! $user || ! Hash::check($validated['password'], $user->password)) {
                 throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
             }
+            
+            // Load roles and permissions
+            $user->load('roles', 'permissions');
+            
             $token = $user->createToken('api')->plainTextToken;
-            return response()->json(['user' => $user, 'token' => $token]);
+            
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $user->getRoleNames(),
+                    'permissions' => $user->getAllPermissions()->pluck('name'),
+                ],
+                'token' => $token
+            ]);
         } catch (\Throwable $e) {
             Log::error('Login error', ['msg' => $e->getMessage(), 'line' => $e->getLine(), 'file' => $e->getFile()]);
             return response()->json(['message' => 'Login server error', 'error' => $e->getMessage()], 500);
@@ -56,7 +70,17 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        return response()->json(['user' => $user]);
+        $user->load('roles', 'permissions');
+        
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+            ]
+        ]);
     }
 
     public function logout(Request $request)

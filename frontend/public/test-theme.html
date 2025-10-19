@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Theme System</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-box {
+            padding: 2rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            border: 2px solid;
+        }
+        .light-test {
+            background: linear-gradient(to br, rgb(248 250 252), rgb(255 255 255), rgb(241 245 249));
+            color: rgb(15 23 42);
+            border-color: rgb(226 232 240);
+        }
+        .dark-test {
+            background: linear-gradient(to br, rgb(2 6 23), rgb(15 23 42), rgb(2 6 23));
+            color: rgb(241 245 249);
+            border-color: rgb(51 65 85);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            background: rgb(59 130 246);
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: rgb(37 99 235);
+        }
+        .info {
+            background: rgb(239 246 255);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        code {
+            background: rgb(226 232 240);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Test du Système de Thème</h1>
+    
+    <div class="info">
+        <h2>Instructions de test :</h2>
+        <ol>
+            <li>Ouvrez la console du navigateur (F12)</li>
+            <li>Exécutez les commandes ci-dessous</li>
+            <li>Rechargez l'application CRM pour voir les changements</li>
+        </ol>
+    </div>
+
+    <h2>État actuel :</h2>
+    <div id="current-theme"></div>
+
+    <h2>Tests visuels :</h2>
+    <div class="test-box light-test">
+        <h3>☀️ Mode Clair</h3>
+        <p>Fond : Dégradé slate-50 → white → slate-100</p>
+        <p>Texte : slate-900</p>
+    </div>
+
+    <div class="test-box dark-test">
+        <h3>🌙 Mode Sombre</h3>
+        <p>Fond : Dégradé slate-950 → slate-900 → slate-950</p>
+        <p>Texte : slate-100</p>
+    </div>
+
+    <h2>Actions rapides :</h2>
+    <button onclick="setLight()">☀️ Activer Mode Clair</button>
+    <button onclick="setDark()">🌙 Activer Mode Sombre</button>
+    <button onclick="clearTheme()">🔄 Réinitialiser</button>
+    <button onclick="checkTheme()">🔍 Vérifier État</button>
+
+    <h2>Commandes Console :</h2>
+    <div class="info">
+        <p><strong>Voir le thème actuel :</strong></p>
+        <code>localStorage.getItem('ui_theme')</code>
+        
+        <p style="margin-top: 1rem;"><strong>Forcer le mode clair :</strong></p>
+        <code>localStorage.setItem('ui_theme', 'light'); location.reload()</code>
+        
+        <p style="margin-top: 1rem;"><strong>Forcer le mode sombre :</strong></p>
+        <code>localStorage.setItem('ui_theme', 'dark'); location.reload()</code>
+        
+        <p style="margin-top: 1rem;"><strong>Vérifier les classes HTML :</strong></p>
+        <code>document.documentElement.classList</code>
+    </div>
+
+    <script>
+        function updateDisplay() {
+            const theme = localStorage.getItem('ui_theme') || 'non défini (dark par défaut)';
+            const htmlClasses = Array.from(document.documentElement.classList).join(', ') || 'aucune';
+            document.getElementById('current-theme').innerHTML = `
+                <div class="info">
+                    <p><strong>localStorage 'ui_theme':</strong> <code>${theme}</code></p>
+                    <p><strong>Classes HTML:</strong> <code>${htmlClasses}</code></p>
+                    <p><strong>Préférence système:</strong> <code>${window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'}</code></p>
+                </div>
+            `;
+        }
+
+        function setLight() {
+            localStorage.setItem('ui_theme', 'light');
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+            console.log('✅ Mode clair activé');
+            updateDisplay();
+            alert('Mode clair activé ! Rechargez l\'application CRM pour voir les changements.');
+        }
+
+        function setDark() {
+            localStorage.setItem('ui_theme', 'dark');
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+            console.log('✅ Mode sombre activé');
+            updateDisplay();
+            alert('Mode sombre activé ! Rechargez l\'application CRM pour voir les changements.');
+        }
+
+        function clearTheme() {
+            localStorage.removeItem('ui_theme');
+            document.documentElement.classList.remove('light', 'dark');
+            console.log('✅ Thème réinitialisé');
+            updateDisplay();
+            alert('Thème réinitialisé ! Rechargez l\'application pour utiliser le thème par défaut.');
+        }
+
+        function checkTheme() {
+            console.log('=== État du Thème ===');
+            console.log('localStorage:', localStorage.getItem('ui_theme'));
+            console.log('HTML classes:', document.documentElement.classList.toString());
+            console.log('Système:', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            updateDisplay();
+        }
+
+        // Initial display
+        updateDisplay();
+
+        // Listen for storage changes
+        window.addEventListener('storage', updateDisplay);
+    </script>
+</body>
+</html>
