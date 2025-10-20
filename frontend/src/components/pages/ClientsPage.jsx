@@ -1,121 +1,177 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import Card from '../ui/Card'
-import Button from '../ui/Button'
-import Input from '../ui/Input'
-import Badge from '../ui/Badge'
-import Avatar from '../ui/Avatar'
-import Modal from '../ui/Modal'
-import EmptyState from '../ui/EmptyState'
-import { TableSkeleton } from '../ui/Skeleton'
-import { t } from '../../lib/i18n'
-import { fetchClients, createClient, updateClient, deleteClient } from '../../features/clients/clientsSlice'
+import toast, { Toaster } from "react-hot-toast";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Badge from "../ui/Badge";
+import Avatar from "../ui/Avatar";
+import Modal from "../ui/Modal";
+import ConfirmDialog from "../ui/ConfirmDialog.jsx";
+import EmptyState from "../ui/EmptyState";
+import { TableSkeleton } from "../ui/Skeleton";
+import { t } from "../../lib/i18n";
+import {
+  fetchClients,
+  createClient,
+  updateClient,
+  deleteClient,
+} from "../../features/clients/clientsSlice";
 
 export default function ClientsPage() {
-  const dispatch = useDispatch()
-  const { clients, status, error } = useSelector((state) => state.clients)
+  const dispatch = useDispatch();
+  const { clients, status, error } = useSelector((state) => state.clients);
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [showModal, setShowModal] = useState(false)
-  const [editingClient, setEditingClient] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null); // client id to delete
 
   const [formData, setFormData] = useState({
-    name: '',
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    statut: 'actif',
-    adresse_ligne1: '',
-    adresse_ligne2: '',
-    ville: '',
-    code_postal: '',
-    pays: 'France',
-    role: '',
-  })
+    name: "",
+    nom: "",
+    prenom: "",
+    email: "",
+    telephone: "",
+    type: "acheteur", // Type de client (acheteur, vendeur, locataire, proprietaire)
+    statut: "actif",
+    adresse_ligne1: "",
+    adresse_ligne2: "",
+    ville: "",
+    code_postal: "",
+    pays: "France",
+    role: "",
+  });
 
   useEffect(() => {
-    dispatch(fetchClients())
-  }, [dispatch])
+    dispatch(fetchClients());
+  }, [dispatch]);
 
-  const filteredClients = (clients || []).filter(client => {
-    const matchesSearch = 
+  const filteredClients = (clients || []).filter((client) => {
+    const matchesSearch =
       client.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = filterStatus === 'all' || client.statut === filterStatus
+      client.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesStatus
-  })
+    const matchesStatus =
+      filterStatus === "all" || client.statut === filterStatus;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const handleAdd = () => {
-    setEditingClient(null)
+    setEditingClient(null);
     setFormData({
-      name: '',
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      statut: 'actif',
-      adresse_ligne1: '',
-      adresse_ligne2: '',
-      ville: '',
-      code_postal: '',
-      pays: 'France',
-      role: '',
-    })
-    setShowModal(true)
-  }
+      name: "",
+      nom: "",
+      prenom: "",
+      email: "",
+      telephone: "",
+      type: "acheteur",
+      statut: "actif",
+      adresse_ligne1: "",
+      adresse_ligne2: "",
+      ville: "",
+      code_postal: "",
+      pays: "France",
+      role: "",
+    });
+    setShowModal(true);
+  };
 
   const handleEdit = (client) => {
-    setEditingClient(client)
+    setEditingClient(client);
     setFormData({
-      name: client.name || '',
-      nom: client.nom || '',
-      prenom: client.prenom || '',
-      email: client.email || '',
-      telephone: client.telephone || '',
-      statut: client.statut || 'actif',
-      adresse_ligne1: client.adresse_ligne1 || '',
-      adresse_ligne2: client.adresse_ligne2 || '',
-      ville: client.ville || '',
-      code_postal: client.code_postal || '',
-      pays: client.pays || 'France',
-      role: client.role || '',
-    })
-    setShowModal(true)
-  }
+      name: client.name || "",
+      nom: client.nom || "",
+      prenom: client.prenom || "",
+      email: client.email || "",
+      telephone: client.telephone || "",
+      type: client.type || "acheteur",
+      statut: client.statut || "actif",
+      adresse_ligne1: client.adresse_ligne1 || "",
+      adresse_ligne2: client.adresse_ligne2 || "",
+      ville: client.ville || "",
+      code_postal: client.code_postal || "",
+      pays: client.pays || "France",
+      role: client.role || "",
+    });
+    setShowModal(true);
+  };
 
   const handleSave = async () => {
     try {
       if (editingClient) {
-        await dispatch(updateClient({ id: editingClient.id, data: formData })).unwrap()
+        await dispatch(
+          updateClient({ id: editingClient.id, data: formData })
+        ).unwrap();
+        toast.success("Client modifié avec succès ! 🎉", {
+          duration: 4000,
+          position: "top-right",
+        });
       } else {
-        await dispatch(createClient(formData)).unwrap()
+        await dispatch(createClient(formData)).unwrap();
+        toast.success("Client ajouté avec succès ! 🎉", {
+          duration: 4000,
+          position: "top-right",
+        });
       }
-      setShowModal(false)
-      dispatch(fetchClients())
+      setShowModal(false);
+      dispatch(fetchClients());
     } catch (err) {
-      console.error('Erreur lors de la sauvegarde du client:', err)
+      console.error("Erreur lors de la sauvegarde du client:", err);
+      toast.error(err.message || "Erreur lors de la sauvegarde du client", {
+        duration: 4000,
+        position: "top-right",
+      });
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (confirm(t('messages.deleteConfirm'))) {
-      try {
-        await dispatch(deleteClient(id)).unwrap()
-        dispatch(fetchClients())
-      } catch (err) {
-        console.error('Erreur lors de la suppression du client:', err)
-      }
+    try {
+      await dispatch(deleteClient(id)).unwrap();
+      toast.success("Client supprimé avec succès", {
+        duration: 3000,
+        position: "top-right",
+      });
+      dispatch(fetchClients());
+    } catch (err) {
+      console.error("Erreur lors de la suppression du client:", err);
+      toast.error(err.message || "Erreur lors de la suppression du client", {
+        duration: 4000,
+        position: "top-right",
+      });
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
+      {/* Toast Notifications */}
+      <Toaster
+        toastOptions={{
+          className: "",
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            border: "1px solid #334155",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -124,18 +180,32 @@ export default function ClientsPage() {
       >
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            {t('clients.title')}
+            {t("clients.title")}
           </h1>
           <p className="text-slate-400">
-            {filteredClients.length} {t('common.results')}
+            {filteredClients.length} {t("common.results")}
           </p>
         </div>
-        <Button onClick={handleAdd} size="lg" leftIcon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        }>
-          {t('clients.add')}
+        <Button
+          onClick={handleAdd}
+          size="lg"
+          leftIcon={
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          }
+        >
+          {t("clients.add")}
         </Button>
       </motion.div>
 
@@ -148,25 +218,39 @@ export default function ClientsPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder={t('clients.search')}
+                placeholder={t("clients.search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 leftIcon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 }
               />
             </div>
             <div className="flex gap-2">
-              {['all', 'actif', 'inactif'].map((status) => (
+              {["all", "actif", "inactif"].map((status) => (
                 <Button
                   key={status}
-                  variant={filterStatus === status ? 'primary' : 'outline'}
+                  variant={filterStatus === status ? "primary" : "outline"}
                   onClick={() => setFilterStatus(status)}
                   size="md"
                 >
-                  {status === 'all' ? 'Tous' : status === 'actif' ? 'Actifs' : 'Inactifs'}
+                  {status === "all"
+                    ? "Tous"
+                    : status === "actif"
+                    ? "Actifs"
+                    : "Inactifs"}
                 </Button>
               ))}
             </div>
@@ -181,16 +265,20 @@ export default function ClientsPage() {
         transition={{ delay: 0.1 }}
       >
         <Card className="overflow-hidden">
-          {status === 'loading' ? (
+          {status === "loading" ? (
             <div className="p-6">
               <TableSkeleton rows={5} />
             </div>
           ) : filteredClients.length === 0 ? (
             <EmptyState
               title="Aucun client trouvé"
-              description={searchTerm ? "Essayez de modifier votre recherche" : "Commencez par ajouter votre premier client"}
+              description={
+                searchTerm
+                  ? "Essayez de modifier votre recherche"
+                  : "Commencez par ajouter votre premier client"
+              }
               action={searchTerm ? null : handleAdd}
-              actionLabel={searchTerm ? null : t('clients.add')}
+              actionLabel={searchTerm ? null : t("clients.add")}
             />
           ) : (
             <div className="overflow-x-auto">
@@ -230,12 +318,17 @@ export default function ClientsPage() {
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <Avatar name={`${client.prenom} ${client.nom}`} size="md" />
+                            <Avatar
+                              name={`${client.prenom} ${client.nom}`}
+                              size="md"
+                            />
                             <div>
                               <p className="text-white font-medium">
                                 {client.prenom} {client.nom}
                               </p>
-                              <p className="text-slate-400 text-sm">{client.email}</p>
+                              <p className="text-slate-400 text-sm">
+                                {client.email}
+                              </p>
                             </div>
                           </div>
                         </td>
@@ -246,12 +339,18 @@ export default function ClientsPage() {
                           <p className="text-slate-300">{client.ville}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant={client.statut === 'actif' ? 'success' : 'default'}>
-                            {client.statut === 'actif' ? 'Actif' : 'Inactif'}
+                          <Badge
+                            variant={
+                              client.statut === "actif" ? "success" : "default"
+                            }
+                          >
+                            {client.statut === "actif" ? "Actif" : "Inactif"}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-slate-400 text-sm">
-                          {new Date(client.createdAt).toLocaleDateString('fr-FR')}
+                          {new Date(client.createdAt).toLocaleDateString(
+                            "fr-FR"
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -261,18 +360,38 @@ export default function ClientsPage() {
                               onClick={() => handleEdit(client)}
                               className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
                               </svg>
                             </motion.button>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              onClick={() => handleDelete(client.id)}
+                              onClick={() => setDeleteTarget(client.id)}
                               className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
                               </svg>
                             </motion.button>
                           </div>
@@ -287,11 +406,23 @@ export default function ClientsPage() {
         </Card>
       </motion.div>
 
+      {/* Confirm delete dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        title="Supprimer ce client ?"
+        message="Cette action est définitive. Voulez-vous vraiment supprimer ce client ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        variant="danger"
+      />
+
       {/* Add/Edit Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title={editingClient ? t('clients.edit') : t('clients.add')}
+        title={editingClient ? t("clients.edit") : t("clients.add")}
         size="lg"
       >
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -306,16 +437,20 @@ export default function ClientsPage() {
           {/* Prénom et Nom */}
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label={t('clients.firstName')}
+              label={t("clients.firstName")}
               value={formData.prenom}
-              onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, prenom: e.target.value })
+              }
               placeholder="Sophie"
               required
             />
             <Input
-              label={t('clients.lastName')}
+              label={t("clients.lastName")}
               value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nom: e.target.value })
+              }
               placeholder="Martin"
               required
             />
@@ -324,30 +459,53 @@ export default function ClientsPage() {
           {/* Email et Téléphone */}
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label={t('auth.email')}
+              label={t("auth.email")}
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               placeholder="sophie.martin@email.fr"
             />
             <Input
-              label={t('clients.phone')}
+              label={t("clients.phone")}
               value={formData.telephone}
-              onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, telephone: e.target.value })
+              }
               placeholder="06 12 34 56 78"
               required
             />
           </div>
 
-          {/* Statut et Rôle */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Type de client, Statut et Rôle */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Type de client *
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value })
+                }
+                className="w-full px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="acheteur">Acheteur</option>
+                <option value="vendeur">Vendeur</option>
+                <option value="locataire">Locataire</option>
+                <option value="proprietaire">Propriétaire</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Statut
               </label>
               <select
                 value={formData.statut}
-                onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, statut: e.target.value })
+                }
                 className="w-full px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="actif">Actif</option>
@@ -358,7 +516,9 @@ export default function ClientsPage() {
             <Input
               label="Rôle"
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
               placeholder="Particulier, Investisseur..."
             />
           </div>
@@ -367,48 +527,58 @@ export default function ClientsPage() {
           <Input
             label="Adresse ligne 1"
             value={formData.adresse_ligne1}
-            onChange={(e) => setFormData({ ...formData, adresse_ligne1: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, adresse_ligne1: e.target.value })
+            }
             placeholder="123 Rue de la République"
           />
           <Input
             label="Adresse ligne 2"
             value={formData.adresse_ligne2}
-            onChange={(e) => setFormData({ ...formData, adresse_ligne2: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, adresse_ligne2: e.target.value })
+            }
             placeholder="Appartement 4B, Bâtiment C"
           />
 
           {/* Ville, Code postal, Pays */}
           <div className="grid grid-cols-3 gap-4">
             <Input
-              label={t('clients.city')}
+              label={t("clients.city")}
               value={formData.ville}
-              onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, ville: e.target.value })
+              }
               placeholder="Paris"
             />
             <Input
               label="Code postal"
               value={formData.code_postal}
-              onChange={(e) => setFormData({ ...formData, code_postal: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, code_postal: e.target.value })
+              }
               placeholder="75001"
             />
             <Input
               label="Pays"
               value={formData.pays}
-              onChange={(e) => setFormData({ ...formData, pays: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, pays: e.target.value })
+              }
               placeholder="France"
             />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-700">
             <Button variant="outline" onClick={() => setShowModal(false)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
-            <Button onClick={handleSave} loading={status === 'loading'}>
-              {t('common.save')}
+            <Button onClick={handleSave} loading={status === "loading"}>
+              {t("common.save")}
             </Button>
           </div>
         </div>
       </Modal>
     </div>
-  )
+  );
 }

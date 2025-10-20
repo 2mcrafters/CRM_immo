@@ -27,6 +27,8 @@ export default function Button({
       "text-blue-400 hover:bg-blue-500/10 focus:ring-blue-500 hover:shadow-lg hover:shadow-blue-500/20",
     danger:
       "bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-red-500/50 hover:shadow-2xl focus:ring-red-500 border border-red-400/20",
+    warning:
+      "bg-gradient-to-r from-yellow-600 to-amber-500 text-white hover:shadow-yellow-500/50 hover:shadow-2xl focus:ring-yellow-500 border border-yellow-400/20",
     success:
       "bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:shadow-green-500/50 hover:shadow-2xl focus:ring-green-500 border border-green-400/20",
   };

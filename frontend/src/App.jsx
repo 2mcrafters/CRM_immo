@@ -76,6 +76,129 @@ function ClientsRoute() {
   );
 }
 
+function PropertiesRoute() {
+  const PropertiesPage = React.lazy(() =>
+    import("./pages/properties/PropertiesPage.jsx")
+  );
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <PropertiesPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
+function RentalsRoute() {
+  const RentalsPage = React.lazy(() =>
+    import("./pages/rentals/RentalsPage.jsx")
+  );
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <RentalsPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
+function OwnersRoute() {
+  const OwnersPage = React.lazy(() => import("./pages/owners/OwnersPage.jsx"));
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <OwnersPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
+function DocumentsRoute() {
+  const DocumentsPage = React.lazy(() =>
+    import("./pages/documents/DocumentsPage.jsx")
+  );
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <DocumentsPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
+function ReportsRoute() {
+  const ReportsPage = React.lazy(() =>
+    import("./pages/reports/ReportsPage.jsx")
+  );
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <ReportsPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
 function AddClientRoute() {
   const AddClientPage = React.lazy(() =>
     import("./pages/clients/AddClientPage.jsx")
@@ -151,6 +274,29 @@ function UsersRoute() {
   );
 }
 
+function DebugRoute() {
+  const DebugPage = React.lazy(() => import("./pages/DebugPage.jsx"));
+  return (
+    <AppLayout>
+      <PageTransition>
+        <React.Suspense
+          fallback={
+            <div className="flex items-center justify-center h-96">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
+              />
+            </div>
+          }
+        >
+          <DebugPage />
+        </React.Suspense>
+      </PageTransition>
+    </AppLayout>
+  );
+}
+
 // Main App Component
 export default function App() {
   return (
@@ -195,7 +341,7 @@ export default function App() {
             path="/properties"
             element={
               <ProtectedRoute>
-                <ClientsRoute />
+                <PropertiesRoute />
               </ProtectedRoute>
             }
           />
@@ -203,7 +349,7 @@ export default function App() {
             path="/rentals"
             element={
               <ProtectedRoute>
-                <ClientsRoute />
+                <RentalsRoute />
               </ProtectedRoute>
             }
           />
@@ -211,7 +357,7 @@ export default function App() {
             path="/owners"
             element={
               <ProtectedRoute>
-                <ClientsRoute />
+                <OwnersRoute />
               </ProtectedRoute>
             }
           />
@@ -219,7 +365,7 @@ export default function App() {
             path="/documents"
             element={
               <ProtectedRoute>
-                <ClientsRoute />
+                <DocumentsRoute />
               </ProtectedRoute>
             }
           />
@@ -227,7 +373,7 @@ export default function App() {
             path="/reports"
             element={
               <ProtectedRoute>
-                <ClientsRoute />
+                <ReportsRoute />
               </ProtectedRoute>
             }
           />
@@ -236,6 +382,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <UsersRoute />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/debug"
+            element={
+              <ProtectedRoute>
+                <DebugRoute />
               </ProtectedRoute>
             }
           />

@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Supprimer la table clients si elle existe
+        Schema::dropIfExists('clients');
+        
+        // Créer la table clients avec tous les champs
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable(); // Nom complet / Identifiant
@@ -30,9 +34,9 @@ return new class extends Migration
             $table->string('role')->nullable();
             $table->decimal('budget_min', 12, 2)->nullable();
             $table->decimal('budget_max', 12, 2)->nullable();
-            $table->text('preferences')->nullable(); // JSON pour stocker les préférences
+            $table->json('preferences')->nullable(); // JSON pour stocker les préférences
             $table->text('notes')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable(); // Agent assigné (sans contrainte FK pour l'instant)
+            $table->unsignedBigInteger('user_id')->nullable(); // Agent assigné
             $table->timestamps();
             $table->softDeletes();
         });

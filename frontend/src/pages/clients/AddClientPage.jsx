@@ -1,180 +1,221 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { createClient } from '../../features/clients/clientsSlice.js'
-import { motion } from 'framer-motion'
-import Button from '../ui/Button.jsx'
-import Input from '../ui/Input.jsx'
-import Card from '../ui/Card.jsx'
-import { t } from '../../lib/i18n.js'
+import toast, { Toaster } from "react-hot-toast";
+import { createClient } from "../../features/clients/clientsSlice.js";
+import { motion } from "framer-motion";
+import Button from "../ui/Button.jsx";
+import Input from "../ui/Input.jsx";
+import Card from "../ui/Card.jsx";
+import { t } from "../../lib/i18n.js";
 
 export default function AddClientPage() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { status, error } = useSelector((state) => state.clients)
-  const users = useSelector((state) => state.auth.user) // Pour assigner un agent
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { status, error } = useSelector((state) => state.clients);
+  const users = useSelector((state) => state.auth.user); // Pour assigner un agent
 
   // États du formulaire
   const [formData, setFormData] = useState({
     // Informations personnelles
-    name: '', // Nom complet ou identifiant
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    telephone_secondaire: '',
-    
+    name: "", // Nom complet ou identifiant
+    nom: "",
+    prenom: "",
+    email: "",
+    telephone: "",
+    telephone_secondaire: "",
+
     // Adresse complète
-    adresse_ligne1: '',
-    adresse_ligne2: '',
-    ville: '',
-    code_postal: '',
-    pays: 'France',
-    
+    adresse_ligne1: "",
+    adresse_ligne2: "",
+    ville: "",
+    code_postal: "",
+    pays: "France",
+
     // Informations client
-    type: 'acheteur',
-    statut: 'prospect',
-    role: '', // Rôle du client
-    budget_min: '',
-    budget_max: '',
-    
+    type: "acheteur",
+    statut: "prospect",
+    role: "", // Rôle du client
+    budget_min: "",
+    budget_max: "",
+
     // Préférences
     preferences: {
       type_bien: [],
-      nombre_pieces: '',
-      superficie_min: '',
+      nombre_pieces: "",
+      superficie_min: "",
       quartiers: [],
       equipements: [],
     },
-    
-    // Notes
-    notes: '',
-  })
 
-  const [errors, setErrors] = useState({})
+    // Notes
+    notes: "",
+  });
+
+  const [errors, setErrors] = useState({});
 
   // Types de clients
   const typesClient = [
-    { value: 'acheteur', label: 'Acheteur' },
-    { value: 'vendeur', label: 'Vendeur' },
-    { value: 'locataire', label: 'Locataire' },
-    { value: 'proprietaire', label: 'Propriétaire' },
-  ]
+    { value: "acheteur", label: "Acheteur" },
+    { value: "vendeur", label: "Vendeur" },
+    { value: "locataire", label: "Locataire" },
+    { value: "proprietaire", label: "Propriétaire" },
+  ];
 
   // Statuts
   const statuts = [
-    { value: 'prospect', label: 'Prospect' },
-    { value: 'actif', label: 'Actif' },
-    { value: 'en_negociation', label: 'En négociation' },
-    { value: 'converti', label: 'Converti' },
-    { value: 'inactif', label: 'Inactif' },
-  ]
+    { value: "prospect", label: "Prospect" },
+    { value: "actif", label: "Actif" },
+    { value: "en_negociation", label: "En négociation" },
+    { value: "converti", label: "Converti" },
+    { value: "inactif", label: "Inactif" },
+  ];
 
   // Types de biens
   const typesBien = [
-    'Appartement',
-    'Maison',
-    'Villa',
-    'Studio',
-    'Loft',
-    'Duplex',
-    'Terrain',
-    'Commerce',
-    'Bureau',
-  ]
+    "Appartement",
+    "Maison",
+    "Villa",
+    "Studio",
+    "Loft",
+    "Duplex",
+    "Terrain",
+    "Commerce",
+    "Bureau",
+  ];
 
   // Équipements
   const equipements = [
-    'Parking',
-    'Garage',
-    'Jardin',
-    'Terrasse',
-    'Balcon',
-    'Piscine',
-    'Ascenseur',
-    'Cave',
-    'Climatisation',
-    'Chauffage central',
-  ]
+    "Parking",
+    "Garage",
+    "Jardin",
+    "Terrasse",
+    "Balcon",
+    "Piscine",
+    "Ascenseur",
+    "Cave",
+    "Climatisation",
+    "Chauffage central",
+  ];
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
     // Clear error for this field
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  }
+  };
 
   const handlePreferenceChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       preferences: {
         ...prev.preferences,
         [name]: value,
       },
-    }))
-  }
+    }));
+  };
 
   const handleCheckboxChange = (category, value) => {
     setFormData((prev) => {
-      const current = prev.preferences[category] || []
+      const current = prev.preferences[category] || [];
       const updated = current.includes(value)
         ? current.filter((item) => item !== value)
-        : [...current, value]
-      
+        : [...current, value];
+
       return {
         ...prev,
         preferences: {
           ...prev.preferences,
           [category]: updated,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
-    if (!formData.nom.trim()) newErrors.nom = 'Le nom est requis'
-    if (!formData.prenom.trim()) newErrors.prenom = 'Le prénom est requis'
-    if (!formData.telephone.trim()) newErrors.telephone = 'Le téléphone est requis'
-    
+    if (!formData.nom.trim()) newErrors.nom = "Le nom est requis";
+    if (!formData.prenom.trim()) newErrors.prenom = "Le prénom est requis";
+    if (!formData.telephone.trim())
+      newErrors.telephone = "Le téléphone est requis";
+
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email invalide'
+      newErrors.email = "Email invalide";
     }
 
     if (formData.budget_min && formData.budget_max) {
       if (parseFloat(formData.budget_min) > parseFloat(formData.budget_max)) {
-        newErrors.budget_max = 'Le budget max doit être supérieur au budget min'
+        newErrors.budget_max =
+          "Le budget max doit être supérieur au budget min";
       }
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      toast.error("Veuillez remplir tous les champs obligatoires", {
+        duration: 3000,
+        position: "top-right",
+      });
+      return;
     }
 
     try {
-      await dispatch(createClient(formData)).unwrap()
-      navigate('/clients')
+      await dispatch(createClient(formData)).unwrap();
+      toast.success("Client ajouté avec succès ! 🎉", {
+        duration: 4000,
+        position: "top-right",
+      });
+      setTimeout(() => {
+        navigate("/clients");
+      }, 1000);
     } catch (err) {
-      console.error('Erreur lors de la création du client:', err)
+      console.error("Erreur lors de la création du client:", err);
+      toast.error(err.message || "Erreur lors de la création du client", {
+        duration: 4000,
+        position: "top-right",
+      });
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 p-4 sm:p-6 lg:p-8">
+      {/* Toast Notifications */}
+      <Toaster
+        toastOptions={{
+          className: "",
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            border: "1px solid #334155",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -184,7 +225,7 @@ export default function AddClientPage() {
         >
           <div className="flex items-center gap-4 mb-4">
             <button
-              onClick={() => navigate('/clients')}
+              onClick={() => navigate("/clients")}
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
             >
               <svg
@@ -240,7 +281,7 @@ export default function AddClientPage() {
               </svg>
               Informations personnelles
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Nom complet / Identifiant"
@@ -251,7 +292,7 @@ export default function AddClientPage() {
                 placeholder="Jean Dupont"
                 className="md:col-span-2"
               />
-              
+
               <Input
                 label="Nom *"
                 name="nom"
@@ -260,7 +301,7 @@ export default function AddClientPage() {
                 error={errors.nom}
                 placeholder="Dupont"
               />
-              
+
               <Input
                 label="Prénom *"
                 name="prenom"
@@ -269,7 +310,7 @@ export default function AddClientPage() {
                 error={errors.prenom}
                 placeholder="Jean"
               />
-              
+
               <Input
                 label="Email"
                 type="email"
@@ -279,7 +320,7 @@ export default function AddClientPage() {
                 error={errors.email}
                 placeholder="jean.dupont@example.com"
               />
-              
+
               <Input
                 label="Téléphone *"
                 type="tel"
@@ -289,7 +330,7 @@ export default function AddClientPage() {
                 error={errors.telephone}
                 placeholder="+33 6 12 34 56 78"
               />
-              
+
               <Input
                 label="Téléphone secondaire"
                 type="tel"
@@ -298,7 +339,7 @@ export default function AddClientPage() {
                 onChange={handleChange}
                 placeholder="+33 6 98 76 54 32"
               />
-              
+
               <Input
                 label="Rôle"
                 name="role"
@@ -334,7 +375,7 @@ export default function AddClientPage() {
               </svg>
               Adresse
             </h2>
-            
+
             <div className="grid grid-cols-1 gap-4">
               <Input
                 label="Adresse ligne 1"
@@ -343,7 +384,7 @@ export default function AddClientPage() {
                 onChange={handleChange}
                 placeholder="123 Rue de la République"
               />
-              
+
               <Input
                 label="Adresse ligne 2"
                 name="adresse_ligne2"
@@ -351,7 +392,7 @@ export default function AddClientPage() {
                 onChange={handleChange}
                 placeholder="Appartement 4B, Bâtiment C"
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   label="Ville"
@@ -360,7 +401,7 @@ export default function AddClientPage() {
                   onChange={handleChange}
                   placeholder="Paris"
                 />
-                
+
                 <Input
                   label="Code postal"
                   name="code_postal"
@@ -368,7 +409,7 @@ export default function AddClientPage() {
                   onChange={handleChange}
                   placeholder="75001"
                 />
-                
+
                 <Input
                   label="Pays"
                   name="pays"
@@ -398,7 +439,7 @@ export default function AddClientPage() {
               </svg>
               Informations client
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -417,7 +458,7 @@ export default function AddClientPage() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Statut *
@@ -435,7 +476,7 @@ export default function AddClientPage() {
                   ))}
                 </select>
               </div>
-              
+
               <Input
                 label="Budget minimum (€)"
                 type="number"
@@ -446,7 +487,7 @@ export default function AddClientPage() {
                 min="0"
                 step="1000"
               />
-              
+
               <Input
                 label="Budget maximum (€)"
                 type="number"
@@ -479,7 +520,7 @@ export default function AddClientPage() {
               </svg>
               Préférences
             </h2>
-            
+
             <div className="space-y-6">
               {/* Types de bien */}
               <div>
@@ -495,7 +536,7 @@ export default function AddClientPage() {
                       <input
                         type="checkbox"
                         checked={formData.preferences.type_bien.includes(type)}
-                        onChange={() => handleCheckboxChange('type_bien', type)}
+                        onChange={() => handleCheckboxChange("type_bien", type)}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">
@@ -517,7 +558,7 @@ export default function AddClientPage() {
                   placeholder="3"
                   min="1"
                 />
-                
+
                 <Input
                   label="Superficie minimum (m²)"
                   type="number"
@@ -542,8 +583,12 @@ export default function AddClientPage() {
                     >
                       <input
                         type="checkbox"
-                        checked={formData.preferences.equipements.includes(equipement)}
-                        onChange={() => handleCheckboxChange('equipements', equipement)}
+                        checked={formData.preferences.equipements.includes(
+                          equipement
+                        )}
+                        onChange={() =>
+                          handleCheckboxChange("equipements", equipement)
+                        }
                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">
@@ -574,7 +619,7 @@ export default function AddClientPage() {
               </svg>
               Notes
             </h2>
-            
+
             <textarea
               name="notes"
               value={formData.notes}
@@ -590,15 +635,15 @@ export default function AddClientPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/clients')}
+              onClick={() => navigate("/clients")}
               className="sm:w-auto w-full"
             >
               Annuler
             </Button>
-            
+
             <Button
               type="submit"
-              loading={status === 'loading'}
+              loading={status === "loading"}
               className="sm:w-auto w-full"
             >
               <svg
@@ -620,5 +665,5 @@ export default function AddClientPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }
